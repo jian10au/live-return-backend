@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const User = require('../models/user');
 
 const login = async (req, res) => {
+  console.log(req.headers);
   const auth = req.headers.authorization;
   const base64String = auth.split(' ')[1];
   const credentials = Buffer.from(base64String, 'base64').toString('ascii');
@@ -17,13 +18,30 @@ const login = async (req, res) => {
 
     if (isMatch) {
       const token = jwt.sign({ _id: userFetched._id }, process.env.JWT_SECRET);
-      res.send(token);
+      const auth = {
+        username: userFetched.username,
+        authToken: token,
+      };
+      res.status(200).send(auth);
     } else {
       res.send('Password is incorrect');
     }
   } catch (err) {
     console.log(err);
     res.status(500).send('User is not found');
+  }
+};
+
+const getUserProfile = async (req, res) => {
+  const auth = req.headers.authorization.split(' ');
+  console.log(req.headers);
+  const token = auth[1];
+  if (token) {
+    const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
+    const userFetched = await User.findOne({ _id: decodedPayload._id });
+    res.send(userFetched);
+  } else {
+    res.send('not receiving the correct payload or other errors');
   }
 };
 
@@ -92,6 +110,7 @@ const destroyUser = async (req, res) => {
 };
 
 module.exports = {
+  getUserProfile,
   indexUser,
   createUser,
   showUser,

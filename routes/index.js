@@ -9,6 +9,7 @@ const {
   showUser,
   updateUser,
   destroyUser,
+  getUserProfile,
 } = require('../controllers/userController');
 
 const {
@@ -29,15 +30,18 @@ const {
 
 //config the router here in below;add the verb directly on the central router instead of defining the verb in sub routing management files
 
+//For auth and landing
 router.get('/', (req, res) => {
   res.send('This is the landing page');
 });
+
+router.get('/userprofile', getUserProfile);
 
 //Users
 
 router.post('/registration', createUser);
 
-router.get('/login', login);
+router.post('/login', login);
 
 router.get('/users', indexUser);
 
@@ -61,7 +65,7 @@ router.delete('/portfolios/:id', destroyPortfolio);
 
 //Investments
 
-router.get('/investments', indexInvestment);
+router.get('/investments', checkToken, indexInvestment);
 
 router.post('/investments', createInvestment);
 

@@ -1,8 +1,10 @@
 const Investment = require('../models/investment');
 
 const indexInvestment = async (req, res) => {
+  console.log('what happens');
+  console.log(req.headers.authorization);
   try {
-    const allInvestments = await nvestment.find({});
+    const allInvestments = await Investment.find({});
     res.send(allInvestments);
   } catch (err) {
     res.status(404).send(err);
