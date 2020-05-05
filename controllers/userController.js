@@ -1,45 +1,122 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-
 const User = require('../models/user');
 
-const login = async (req, res) => {
-  console.log(req.headers);
-  const auth = req.headers.authorization;
-  const base64String = auth.split(' ')[1];
-  const credentials = Buffer.from(base64String, 'base64').toString('ascii');
-  const username = credentials.split(':')[0];
-  const password = credentials.split(':')[1];
+const checkPassWord = (rawStrPw, encryptedPw) => {
+  return bcrypt.compare(rawStrPw, encryptedPw);
+};
+
+const createUser = async (req, res) => {
+  const { username, password, email } = req.body;
 
   try {
-    const userFetched = await User.findOne({ username: username });
-    const isMatch = await bcrypt.compare(password, userFetched.password);
-    console.log(userFetched);
-
-    if (isMatch) {
-      const token = jwt.sign({ _id: userFetched._id }, process.env.JWT_SECRET);
-      const auth = {
-        username: userFetched.username,
-        authToken: token,
-      };
-      res.status(200).send(auth);
-    } else {
-      res.send('Password is incorrect');
+    if (!username || !password || !email) {
+      throw Error('Required field is missing');
     }
   } catch (err) {
     console.log(err);
-    res.status(500).send('User is not found');
+    return res.status(400).json({ msg: 'Please enter all fields' });
+  }
+
+  // before the newUser is created; check whether the username already exists
+
+  try {
+    const existentUser = await User.findOne({ username });
+    if (existentUser) {
+      throw Error('Username exists');
+    }
+
+    if (password.length > 20 || password.length < 6) {
+      throw Error('Password length must be between 6 and 20');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    if (!hashedPassword) {
+      throw Error('Something went wrong with hashing the password');
+    }
+
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+      portfolio: [],
+    });
+
+    const savedUser = await newUser.save();
+    if (!savedUser) {
+      throw Error('Something went wrong with saving the new user');
+    }
+
+    const authToken = jwt.sign({ _id: savedUser._id }, process.env.JWT_SECRET);
+    const authData = {
+      user: {
+        username,
+        email,
+      },
+      authToken,
+    };
+
+    res.status(200).json(authData);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ msg: err.message });
   }
 };
 
-const getUserProfile = async (req, res) => {
-  const auth = req.headers.authorization.split(' ');
-  console.log(req.headers);
-  const token = auth[1];
-  if (token) {
-    const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
-    const userFetched = await User.findOne({ _id: decodedPayload._id });
-    res.send(userFetched);
+const signIn = async (req, res) => {
+  const { email, password } = res.locals;
+  console.log(email, 'what is the email');
+  console.log(password, 'what is the password');
+
+  try {
+    if (!password || !email) {
+      throw Error('Required field is missing');
+    }
+
+    if (password.length > 20 || password.length < 6) {
+      throw Error('Password length must be between 6 and 20');
+    }
+
+    const userFetched = await User.findOne({ email });
+    if (!userFetched) {
+      throw Error('User does not exist and please sign up');
+    }
+
+    const isMatch = await checkPassWord(password, userFetched.password);
+    if (!isMatch) {
+      throw Error('Wrong password');
+    }
+
+    const authToken = jwt.sign(
+      { _id: userFetched._id },
+      process.env.JWT_SECRET
+    );
+    const authData = {
+      user: {
+        username: userFetched.username,
+        email: email,
+      },
+      authToken,
+    };
+    res.status(200).json(authData);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ msg: err.message });
+  }
+};
+
+const credentialUser = async (req, res) => {
+  const { authToken, decoded } = res.locals;
+  console.log(authToken, 'what is the authToken i have in be?');
+  console.log(decoded, 'what is the decoded i have in be?');
+
+  if (authToken) {
+    const userFetched = await User.findOne({ _id: decoded._id });
+    const userCredential = {
+      username: userFetched.username,
+      email: userFetched.email,
+    };
+    res.status(200).json(userCredential);
   } else {
     res.send('not receiving the correct payload or other errors');
   }
@@ -51,24 +128,6 @@ const indexUser = async (req, res) => {
     res.send(allUsers);
   } catch (err) {
     res.status(404).send(err);
-  }
-};
-
-const createUser = async (req, res) => {
-  const { password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const newUser = new User({
-    username: req.body.username,
-    email: req.body.email,
-    password: hashedPassword,
-    portfolio: [],
-  });
-  try {
-    await newUser.save();
-    res.send('ok');
-  } catch (err) {
-    res.status(400).send(err);
   }
 };
 
@@ -110,11 +169,11 @@ const destroyUser = async (req, res) => {
 };
 
 module.exports = {
-  getUserProfile,
+  credentialUser,
   indexUser,
   createUser,
   showUser,
   updateUser,
   destroyUser,
-  login,
+  signIn,
 };

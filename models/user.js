@@ -3,9 +3,13 @@ const Schema = mongoose.Schema;
 
 const userScehma = new Schema(
   {
-    username: String,
+    username: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     email: String,
-    password: String,
+    password: { type: String, required: true, minlength: 60, maxlength: 60 },
     portfolios: [
       {
         type: Schema.Types.ObjectId,
@@ -15,6 +19,7 @@ const userScehma = new Schema(
   },
   {
     timestamps: true,
+    autoIndex: false,
   }
 );
 

@@ -25,7 +25,7 @@ mongoose.connect(
 const app = express();
 
 app.use(cors());
-app.use(morgan('dev'));
+app.use(morgan('tiny'));
 app.use(express.json());
 
 app.use(routes);

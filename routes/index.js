@@ -1,15 +1,17 @@
 const express = require('express');
 const checkToken = require('../utils/checkToken');
+const readBasicAuthFromHeader = require('../utils/readBasicAuthFromHeader');
+const readAuthTokenFromHeader = require('../utils/readAuthTokenFromHeader');
 
 const router = express.Router();
 const {
   indexUser,
   createUser,
-  login,
+  signIn,
   showUser,
   updateUser,
   destroyUser,
-  getUserProfile,
+  credentialUser,
 } = require('../controllers/userController');
 
 const {
@@ -35,13 +37,13 @@ router.get('/', (req, res) => {
   res.send('This is the landing page');
 });
 
-router.get('/userprofile', getUserProfile);
+router.get('/credentialUser', readAuthTokenFromHeader, credentialUser);
 
 //Users
 
-router.post('/registration', createUser);
+router.post('/register', createUser);
 
-router.post('/login', login);
+router.get('/signin', readBasicAuthFromHeader, signIn);
 
 router.get('/users', indexUser);
 
