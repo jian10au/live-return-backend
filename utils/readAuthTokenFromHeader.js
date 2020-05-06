@@ -8,10 +8,9 @@ const readAuthTokenFromHeader = (req, res, next) => {
   try {
     const decoded = jwt.verify(authToken, process.env.JWT_SECRET);
     res.locals.decoded = decoded;
-    res.locals.authToken = authToken;
     next();
   } catch (err) {
-    res.status(400).json({ msg: 'Token is not valid' });
+    res.status(400).json({ msg: 'authToken is not valid' });
   }
 };
 

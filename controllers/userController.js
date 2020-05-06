@@ -106,19 +106,18 @@ const signIn = async (req, res) => {
 };
 
 const credentialUser = async (req, res) => {
-  const { authToken, decoded } = res.locals;
-  console.log(authToken, 'what is the authToken i have in be?');
-  console.log(decoded, 'what is the decoded i have in be?');
+  const { decoded } = res.locals;
 
-  if (authToken) {
+  try {
     const userFetched = await User.findOne({ _id: decoded._id });
+    if (!userFetched) throw Error('cannot found the user in database');
     const userCredential = {
       username: userFetched.username,
       email: userFetched.email,
     };
     res.status(200).json(userCredential);
-  } else {
-    res.send('not receiving the correct payload or other errors');
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
   }
 };
 
