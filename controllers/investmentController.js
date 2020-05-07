@@ -1,4 +1,5 @@
 const Investment = require('../models/investment');
+const Portfolio = require('../models/portfolio');
 
 const indexInvestment = async (req, res) => {
   console.log('what happens');
@@ -12,15 +13,19 @@ const indexInvestment = async (req, res) => {
 };
 
 const createInvestment = async (req, res) => {
-  const newInvestment = new Investment({
-    quote: req.body.quote,
-    exchange: req.body.exchange,
-    entryPrice: req.body.entryPrice,
-    exitPrice: req.body.exitPrice,
-  });
   try {
-    await newInvestment.save();
-    res.send('ok');
+    const newInvestment = new Investment({
+      quote: req.body.quote,
+      exchange: req.body.exchange,
+      entryPrice: req.body.entryPrice,
+      exitPrice: req.body.exitPrice,
+    });
+    const savedInvestment = await newInvestment.save();
+    const foundPortfolio = await Portfolio.findById(req.body.portfolioId);
+    foundPortfolio.investments.push(savedInvestment._id);
+    const updatedPortfolio = await foundPortfolio.save();
+
+    res.status(200).send(' investment successfully saved to a portfolio');
   } catch (err) {
     res.status(400).send(err);
   }

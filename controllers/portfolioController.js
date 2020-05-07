@@ -1,4 +1,5 @@
 const Portfolio = require('../models/portfolio');
+const User = require('../models/user');
 
 const indexPortfolio = async (req, res) => {
   try {
@@ -15,16 +16,48 @@ const createPortfolio = async (req, res) => {
     description: req.body.description,
     investments: [],
   });
+  console.log(res.locals.decoded, 'get res locals decoded');
+
   try {
-    await newPortfolio.save();
-    res.send('ok');
+    const savedPortfolio = await newPortfolio.save();
+    if (!savedPortfolio) {
+      throw Error('Something went wrong with saving the portfolio');
+    }
+
+    const userFetched = await User.findOne({ _id: res.locals.decoded._id });
+    if (!userFetched) {
+      throw Error('Something went wrong with finding the user');
+    }
+    userFetched.portfolios.push(savedPortfolio._id);
+    const updatedUser = await userFetched.save();
+    console.log(updatedUser, 'Check if the it is saved successfully');
+
+    res.status(200).json({
+      msg: `The new portfolio is saved to user account ${userFetched.email}`,
+    });
   } catch (err) {
-    res.status(400).send(err);
+    res.status(500).send({ msg: err.message });
+  }
+};
+
+const showUserPortfolios = async (req, res) => {
+  try {
+    console.log('what happpensS');
+    console.log(res.locals.decoded);
+    const userFetched = await User.findOne({
+      _id: res.locals.decoded._id,
+    }).populate('portfolios');
+    console.log(userFetched);
+    console.log(userFetched.portfolios, 'findNothing?');
+    res.status(200).send(userFetched.portfolios);
+  } catch (err) {
+    res.status(500).send({ msg: err.message });
   }
 };
 
 const showPortfolio = async (req, res) => {
   console.log(req.params.id);
+
   try {
     const portfolio = await Portfolio.findById(req.params.id);
     res.send(portfolio);
@@ -66,4 +99,5 @@ module.exports = {
   showPortfolio,
   updatePortfolio,
   destroyPortfolio,
+  showUserPortfolios,
 };

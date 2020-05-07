@@ -18,6 +18,7 @@ const {
   indexPortfolio,
   createPortfolio,
   showPortfolio,
+  showUserPortfolios,
   updatePortfolio,
   destroyPortfolio,
 } = require('../controllers/portfolioController');
@@ -55,13 +56,15 @@ router.delete('/users/:id', destroyUser);
 
 //Portfolio
 
-router.get('/portfolios', checkToken, indexPortfolio);
+router.get('/portfolios', readAuthTokenFromHeader, indexPortfolio);
 
-router.post('/portfolios', createPortfolio);
+router.post('/portfolios', readAuthTokenFromHeader, createPortfolio);
+
+router.get('/user/portfolios', readAuthTokenFromHeader, showUserPortfolios);
 
 router.get('/portfolios/:id', showPortfolio);
 
-router.put('/portfolios/:id', updatePortfolio);
+router.put('/portfolios/:id', readAuthTokenFromHeader, updatePortfolio);
 
 router.delete('/portfolios/:id', destroyPortfolio);
 
@@ -69,12 +72,12 @@ router.delete('/portfolios/:id', destroyPortfolio);
 
 router.get('/investments', checkToken, indexInvestment);
 
-router.post('/investments', createInvestment);
+router.post('/investments', readAuthTokenFromHeader, createInvestment);
 
 router.get('/investments/:id', showInvestment);
 
 router.put('/investments/:id', updateInvestment);
 
-router.delete('/investments/:id', destroyInvestment);
+router.delete('/investments/:id', readAuthTokenFromHeader, destroyInvestment);
 
 module.exports = router;
