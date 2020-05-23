@@ -31,6 +31,20 @@ const createInvestment = async (req, res) => {
   }
 };
 
+const showPortfolioInvestments = async (req, res) => {
+  try {
+    const portfolioId = req.params.id;
+    console.log(portfolioId, 'params in backend');
+    const foundPortfolio = await Portfolio.findById(portfolioId).populate(
+      'investments'
+    );
+    console.log(foundPortfolio);
+    res.status(200).send(foundPortfolio.investments);
+  } catch (err) {
+    res.status(404).json({ msg: err.message });
+  }
+};
+
 const showInvestment = async (req, res) => {
   console.log(req.params.id);
   try {
@@ -74,4 +88,5 @@ module.exports = {
   showInvestment,
   updateInvestment,
   destroyInvestment,
+  showPortfolioInvestments,
 };

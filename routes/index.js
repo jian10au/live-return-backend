@@ -26,6 +26,7 @@ const {
 const {
   indexInvestment,
   createInvestment,
+  showPortfolioInvestments,
   showInvestment,
   updateInvestment,
   destroyInvestment,
@@ -69,6 +70,12 @@ router.put('/portfolios/:id', readAuthTokenFromHeader, updatePortfolio);
 router.delete('/portfolios/:id', destroyPortfolio);
 
 //Investments
+
+router.get(
+  '/portfolioinvestments/:id',
+  readAuthTokenFromHeader,
+  showPortfolioInvestments
+);
 
 router.get('/investments', checkToken, indexInvestment);
 
