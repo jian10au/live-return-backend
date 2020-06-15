@@ -19,6 +19,8 @@ const createInvestment = async (req, res) => {
       exchange: req.body.exchange,
       entryPrice: req.body.entryPrice,
       exitPrice: req.body.exitPrice,
+      quantity: req.body.quantity,
+      isActive: req.body.isActive,
     });
     const savedInvestment = await newInvestment.save();
     const foundPortfolio = await Portfolio.findById(req.body.portfolioId);

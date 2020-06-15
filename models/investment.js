@@ -7,7 +7,8 @@ const investmentScehma = new Schema(
     exchange: String,
     entryPrice: Number,
     exitPrice: Number,
-    realisedPL: Number,
+    isActive: Boolean,
+    quantity: Number,
   },
   {
     timestamps: true,
